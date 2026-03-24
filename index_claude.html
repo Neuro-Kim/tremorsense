@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TremorSense - Clinical Tremor Analysis</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./style_claude.css" />
+  </head>
+  <body>
+    <div class="app-wrapper">
+      <!-- Top Navigation -->
+      <nav class="top-nav">
+        <div class="nav-brand">
+          <div class="brand-icon">
+            <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+              <path d="M14 2C7.373 2 2 7.373 2 14s5.373 12 12 12 12-5.373 12-12S20.627 2 14 2z" fill="url(#g1)" opacity="0.15"/>
+              <path d="M4 14h3l2-6 3 12 3-8 2 4h3" stroke="url(#g1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <defs><linearGradient id="g1" x1="2" y1="2" x2="26" y2="26"><stop stop-color="#6366f1"/><stop offset="1" stop-color="#06b6d4"/></linearGradient></defs>
+            </svg>
+          </div>
+          <span class="brand-text">TremorSense</span>
+          <span class="brand-badge">Clinical</span>
+        </div>
+        <div class="nav-right">
+          <button class="theme-toggle" id="theme-toggle" title="Toggle theme">
+            <div class="theme-toggle-track">
+              <div class="theme-toggle-thumb">
+                <svg class="theme-toggle-icon" id="theme-icon-dark" viewBox="0 0 20 20" fill="currentColor" style="color:#f59e0b">
+                  <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/>
+                </svg>
+                <svg class="theme-toggle-icon" id="theme-icon-light" viewBox="0 0 20 20" fill="currentColor" style="color:#f59e0b; display:none">
+                  <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"/>
+                </svg>
+              </div>
+            </div>
+          </button>
+          <div class="nav-status">
+            <div class="status-dot" id="status-dot"></div>
+            <span id="ble-status">Disconnected</span>
+          </div>
+        </div>
+      </nav>
+
+      <!-- Connection Panel -->
+      <section class="connect-section">
+        <div class="connect-card">
+          <div class="connect-left">
+            <div class="sensor-info">
+              <h3>WT9011DCL IMU Sensor</h3>
+              <p>Bluetooth 5.0 &middot; 9-Axis &middot; 200Hz Max</p>
+            </div>
+            <div class="connect-actions">
+              <button id="btn-connect" class="btn btn-primary">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11M12 2v20M7 7l5-5 5 5M7 17l5 5 5-5"/></svg>
+                Connect Sensor
+              </button>
+              <button id="btn-rate" class="btn btn-secondary" style="display:none;">Set 50Hz</button>
+            </div>
+          </div>
+          <div class="connect-right">
+            <div class="live-grid">
+              <div class="live-cell">
+                <span class="live-label">aX</span>
+                <span class="live-value" id="val-ax">0.00</span>
+                <span class="live-unit">g</span>
+              </div>
+              <div class="live-cell">
+                <span class="live-label">aY</span>
+                <span class="live-value" id="val-ay">0.00</span>
+                <span class="live-unit">g</span>
+              </div>
+              <div class="live-cell">
+                <span class="live-label">aZ</span>
+                <span class="live-value" id="val-az">0.00</span>
+                <span class="live-unit">g</span>
+              </div>
+              <div class="live-cell">
+                <span class="live-label">gX</span>
+                <span class="live-value" id="val-gx">0.0</span>
+                <span class="live-unit">&deg;/s</span>
+              </div>
+              <div class="live-cell">
+                <span class="live-label">gY</span>
+                <span class="live-value" id="val-gy">0.0</span>
+                <span class="live-unit">&deg;/s</span>
+              </div>
+              <div class="live-cell">
+                <span class="live-label">gZ</span>
+                <span class="live-value" id="val-gz">0.0</span>
+                <span class="live-unit">&deg;/s</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Task Recording Panel -->
+      <section class="record-section">
+        <div class="record-card">
+          <h3 class="record-title">Recording Tasks</h3>
+          <div class="task-buttons">
+            <button class="btn btn-task" data-task="right-resting" disabled>
+              <span class="task-hand">R</span>
+              <span class="task-info">
+                <span class="task-name">Right Resting</span>
+                <span class="task-desc">Hand relaxed on lap</span>
+              </span>
+              <span class="task-status" id="status-right-resting"></span>
+            </button>
+            <button class="btn btn-task" data-task="right-postural" disabled>
+              <span class="task-hand">R</span>
+              <span class="task-info">
+                <span class="task-name">Right Postural</span>
+                <span class="task-desc">Arm extended forward</span>
+              </span>
+              <span class="task-status" id="status-right-postural"></span>
+            </button>
+            <button class="btn btn-task" data-task="left-resting" disabled>
+              <span class="task-hand">L</span>
+              <span class="task-info">
+                <span class="task-name">Left Resting</span>
+                <span class="task-desc">Hand relaxed on lap</span>
+              </span>
+              <span class="task-status" id="status-left-resting"></span>
+            </button>
+            <button class="btn btn-task" data-task="left-postural" disabled>
+              <span class="task-hand">L</span>
+              <span class="task-info">
+                <span class="task-name">Left Postural</span>
+                <span class="task-desc">Arm extended forward</span>
+              </span>
+              <span class="task-status" id="status-left-postural"></span>
+            </button>
+          </div>
+          <div class="progress-row">
+            <div class="progress-track">
+              <div id="record-progress" class="progress-fill"></div>
+            </div>
+            <span class="record-indicator" id="record-indicator"></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Debug Console (collapsible) -->
+      <details class="debug-details">
+        <summary>Raw Packet Console</summary>
+        <div id="debug-log" class="debug-console">Awaiting data...</div>
+      </details>
+
+      <!-- Analysis Results (hidden until at least one recording done) -->
+      <div id="results-panel" class="results-panel hidden">
+
+        <!-- Per-task Results -->
+        <section class="task-results-section">
+          <h2 class="section-heading">Per-Task Analysis</h2>
+          <div class="task-results-grid">
+            <!-- Right Resting -->
+            <div class="task-result-card" id="result-right-resting">
+              <div class="task-result-header resting">
+                <span class="task-result-hand">R</span>
+                <span>Right Resting</span>
+              </div>
+              <div class="task-result-body">
+                <div class="task-metric"><span class="tm-label">Frequency</span><span class="tm-value" id="freq-right-resting">--</span><span class="tm-unit">Hz</span></div>
+                <div class="task-metric"><span class="tm-label">RMS</span><span class="tm-value" id="rms-right-resting">--</span><span class="tm-unit">g</span></div>
+                <div class="task-metric"><span class="tm-label">PSD</span><span class="tm-value" id="psd-right-resting">--</span><span class="tm-unit">g&sup2;/Hz</span></div>
+                <div class="task-metric"><span class="tm-label">ApEn</span><span class="tm-value" id="apen-right-resting">--</span><span class="tm-unit"></span></div>
+                <div class="task-metric"><span class="tm-label">Samples</span><span class="tm-value" id="samples-right-resting">--</span><span class="tm-unit"></span></div>
+              </div>
+              <div class="mini-chart-wrap"><canvas id="chart-right-resting"></canvas></div>
+            </div>
+            <!-- Right Postural -->
+            <div class="task-result-card" id="result-right-postural">
+              <div class="task-result-header postural">
+                <span class="task-result-hand">R</span>
+                <span>Right Postural</span>
+              </div>
+              <div class="task-result-body">
+                <div class="task-metric"><span class="tm-label">Frequency</span><span class="tm-value" id="freq-right-postural">--</span><span class="tm-unit">Hz</span></div>
+                <div class="task-metric"><span class="tm-label">RMS</span><span class="tm-value" id="rms-right-postural">--</span><span class="tm-unit">g</span></div>
+                <div class="task-metric"><span class="tm-label">PSD</span><span class="tm-value" id="psd-right-postural">--</span><span class="tm-unit">g&sup2;/Hz</span></div>
+                <div class="task-metric"><span class="tm-label">ApEn</span><span class="tm-value" id="apen-right-postural">--</span><span class="tm-unit"></span></div>
+                <div class="task-metric"><span class="tm-label">Samples</span><span class="tm-value" id="samples-right-postural">--</span><span class="tm-unit"></span></div>
+              </div>
+              <div class="mini-chart-wrap"><canvas id="chart-right-postural"></canvas></div>
+            </div>
+            <!-- Left Resting -->
+            <div class="task-result-card" id="result-left-resting">
+              <div class="task-result-header resting">
+                <span class="task-result-hand">L</span>
+                <span>Left Resting</span>
+              </div>
+              <div class="task-result-body">
+                <div class="task-metric"><span class="tm-label">Frequency</span><span class="tm-value" id="freq-left-resting">--</span><span class="tm-unit">Hz</span></div>
+                <div class="task-metric"><span class="tm-label">RMS</span><span class="tm-value" id="rms-left-resting">--</span><span class="tm-unit">g</span></div>
+                <div class="task-metric"><span class="tm-label">PSD</span><span class="tm-value" id="psd-left-resting">--</span><span class="tm-unit">g&sup2;/Hz</span></div>
+                <div class="task-metric"><span class="tm-label">ApEn</span><span class="tm-value" id="apen-left-resting">--</span><span class="tm-unit"></span></div>
+                <div class="task-metric"><span class="tm-label">Samples</span><span class="tm-value" id="samples-left-resting">--</span><span class="tm-unit"></span></div>
+              </div>
+              <div class="mini-chart-wrap"><canvas id="chart-left-resting"></canvas></div>
+            </div>
+            <!-- Left Postural -->
+            <div class="task-result-card" id="result-left-postural">
+              <div class="task-result-header postural">
+                <span class="task-result-hand">L</span>
+                <span>Left Postural</span>
+              </div>
+              <div class="task-result-body">
+                <div class="task-metric"><span class="tm-label">Frequency</span><span class="tm-value" id="freq-left-postural">--</span><span class="tm-unit">Hz</span></div>
+                <div class="task-metric"><span class="tm-label">RMS</span><span class="tm-value" id="rms-left-postural">--</span><span class="tm-unit">g</span></div>
+                <div class="task-metric"><span class="tm-label">PSD</span><span class="tm-value" id="psd-left-postural">--</span><span class="tm-unit">g&sup2;/Hz</span></div>
+                <div class="task-metric"><span class="tm-label">ApEn</span><span class="tm-value" id="apen-left-postural">--</span><span class="tm-unit"></span></div>
+                <div class="task-metric"><span class="tm-label">Samples</span><span class="tm-value" id="samples-left-postural">--</span><span class="tm-unit"></span></div>
+              </div>
+              <div class="mini-chart-wrap"><canvas id="chart-left-postural"></canvas></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Comparison Charts -->
+        <section class="charts-section">
+          <h2 class="section-heading">Comparative Visualization</h2>
+          <div class="chart-row half">
+            <div class="chart-card">
+              <h3>RMS Amplitude Comparison</h3>
+              <canvas id="compareRmsChart"></canvas>
+            </div>
+            <div class="chart-card">
+              <h3>Dominant Frequency Comparison</h3>
+              <canvas id="compareFreqChart"></canvas>
+            </div>
+          </div>
+        </section>
+
+        <!-- Differential Diagnosis -->
+        <section class="diagnosis-section">
+          <h2 class="section-heading">Differential Diagnosis &mdash; ET vs PD</h2>
+          <div class="diag-table-wrap">
+            <table class="diag-table">
+              <thead>
+                <tr>
+                  <th>Feature</th>
+                  <th>Essential Tremor (ET)</th>
+                  <th>Parkinson's Disease (PD)</th>
+                  <th>Patient Result</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Dominant Frequency</td>
+                  <td>4 &ndash; 12 Hz (often 6-10)</td>
+                  <td>4 &ndash; 6 Hz</td>
+                  <td id="diag-freq" class="diag-result">--</td>
+                </tr>
+                <tr>
+                  <td>Primary Type</td>
+                  <td>Postural / Action dominant</td>
+                  <td>Resting dominant</td>
+                  <td id="diag-type" class="diag-result">--</td>
+                </tr>
+                <tr>
+                  <td>Regularity</td>
+                  <td>Less regular (higher ApEn)</td>
+                  <td>More regular (lower ApEn)</td>
+                  <td id="diag-regularity" class="diag-result">--</td>
+                </tr>
+                <tr>
+                  <td>Resting vs Postural</td>
+                  <td>Postural &gt; Resting</td>
+                  <td>Resting &gt; Postural</td>
+                  <td id="diag-rest-post" class="diag-result">--</td>
+                </tr>
+                <tr>
+                  <td>Asymmetry</td>
+                  <td>Symmetrical</td>
+                  <td>Asymmetrical</td>
+                  <td id="diag-asymmetry" class="diag-result">--</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Verdict -->
+          <div class="verdict-card" id="verdict-card">
+            <div class="verdict-icon" id="verdict-icon"></div>
+            <div class="verdict-body">
+              <h3 id="verdict-title">Awaiting Analysis</h3>
+              <p id="verdict-text">Complete all 4 tasks to generate full differential diagnosis.</p>
+            </div>
+            <div class="verdict-scores">
+              <div class="score-bar">
+                <span class="score-label">ET Score</span>
+                <div class="score-track"><div class="score-fill et-fill" id="et-score-bar" style="width:0%"></div></div>
+                <span class="score-pct" id="et-score-pct">0%</span>
+              </div>
+              <div class="score-bar">
+                <span class="score-label">PD Score</span>
+                <div class="score-track"><div class="score-fill pd-fill" id="pd-score-bar" style="width:0%"></div></div>
+                <span class="score-pct" id="pd-score-pct">0%</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Clinical Note -->
+        <section class="note-section">
+          <h2 class="section-heading">Clinical Note</h2>
+          <div class="note-box" id="clinical-note">
+            Analysis results will appear here after recording.
+          </div>
+          <p class="disclaimer">This tool is intended for clinical decision support only. It does not replace physician judgment or confirmatory diagnostic tests (e.g., DaTscan).</p>
+        </section>
+      </div>
+    </div>
+
+    <script type="module" src="./main_claude.js"></script>
+  </body>
+</html>
