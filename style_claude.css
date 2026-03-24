@@ -911,3 +911,37 @@ body {
   .m-value { -webkit-text-fill-color: #111; }
   .brand-text { -webkit-text-fill-color: #333; }
 }
+
+/* ── Export Bar ── */
+.export-bar {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-bottom: 20px;
+}
+
+.export-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: 1px solid var(--border-hover);
+  border-radius: 8px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.export-btn:hover {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.export-btn:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}

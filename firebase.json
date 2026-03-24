@@ -3,7 +3,7 @@
     "public": "dist",
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
     "rewrites": [
-      { "source": "**", "destination": "/index_claude.html" }
+      { "source": "**", "destination": "/index.html" }
     ],
     "headers": [
       {

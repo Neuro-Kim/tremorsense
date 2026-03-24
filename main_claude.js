@@ -1,4 +1,6 @@
 import Chart from 'chart.js/auto';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 
 // ═══════════════════════════════════════════════════════
 // BLE Constants for WitMotion WT9011DCL
@@ -662,6 +664,98 @@ function updateThemeIcons() {
 }
 
 // ═══════════════════════════════════════════════════════
+// Export (PDF / PNG)
+// ═══════════════════════════════════════════════════════
+async function captureResultsCanvas() {
+  const panel = document.getElementById('results-panel');
+  // Temporarily force light background for export readability
+  const origBg = panel.style.background;
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  return html2canvas(panel, {
+    scale: 2,
+    useCORS: true,
+    backgroundColor: isLight ? '#ffffff' : '#0f172a',
+  }).then(canvas => {
+    panel.style.background = origBg;
+    return canvas;
+  });
+}
+
+// A4: 210 x 297 mm
+const A4_W = 210;
+const A4_H = 297;
+const MARGIN = 10;
+
+async function exportPDF() {
+  const btn = document.getElementById('btn-export-pdf');
+  btn.disabled = true;
+  btn.textContent = 'Generating...';
+  try {
+    const canvas = await captureResultsCanvas();
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF('p', 'mm', 'a4');
+
+    const contentW = A4_W - MARGIN * 2;
+    const imgAspect = canvas.height / canvas.width;
+    const contentH = A4_H - MARGIN * 2;
+
+    // Scale image to fit A4 width; paginate if taller than one page
+    const scaledH = contentW * imgAspect;
+    const totalPages = Math.ceil(scaledH / contentH);
+
+    for (let page = 0; page < totalPages; page++) {
+      if (page > 0) pdf.addPage();
+      // Shift the image up by page offset
+      const yOffset = MARGIN - page * contentH;
+      pdf.addImage(imgData, 'PNG', MARGIN, yOffset, contentW, scaledH);
+    }
+
+    const now = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+    pdf.save(`TremorSense_Report_${now}.pdf`);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> PDF Export`;
+  }
+}
+
+async function exportPNG() {
+  const btn = document.getElementById('btn-export-png');
+  btn.disabled = true;
+  btn.textContent = 'Generating...';
+  try {
+    const canvas = await captureResultsCanvas();
+
+    // Create A4-proportioned canvas (300 DPI: 2480 x 3508 px)
+    const a4Canvas = document.createElement('canvas');
+    const dpi = 300;
+    a4Canvas.width = Math.round(A4_W / 25.4 * dpi);   // 2480
+    a4Canvas.height = Math.round(A4_H / 25.4 * dpi);   // 3508
+    const ctx = a4Canvas.getContext('2d');
+
+    // Fill background
+    const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    ctx.fillStyle = isLight ? '#ffffff' : '#0f172a';
+    ctx.fillRect(0, 0, a4Canvas.width, a4Canvas.height);
+
+    // Draw captured content scaled to fit A4 width with margin
+    const marginPx = Math.round(MARGIN / 25.4 * dpi);
+    const drawW = a4Canvas.width - marginPx * 2;
+    const drawH = drawW * (canvas.height / canvas.width);
+    ctx.drawImage(canvas, marginPx, marginPx, drawW, drawH);
+
+    // Download
+    const link = document.createElement('a');
+    const now = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+    link.download = `TremorSense_Report_${now}.png`;
+    link.href = a4Canvas.toDataURL('image/png');
+    link.click();
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> PNG Export`;
+  }
+}
+
+// ═══════════════════════════════════════════════════════
 // Init — all event listeners inside DOMContentLoaded
 // ═══════════════════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', () => {
@@ -692,4 +786,7 @@ window.addEventListener('DOMContentLoaded', () => {
   });
 
   $('theme-toggle').addEventListener('click', toggleTheme);
+
+  $('btn-export-pdf').addEventListener('click', exportPDF);
+  $('btn-export-png').addEventListener('click', exportPNG);
 });
