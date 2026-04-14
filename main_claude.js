@@ -32,6 +32,7 @@ let isRecording = false;
 let currentTask = null;
 let recordTimer = null;
 let startTime = 0;
+let currentSamplingRate = 50; // Track current sampling rate (50 or 100 Hz)
 
 // Per-task stored data
 const taskData = {};
@@ -770,12 +771,18 @@ window.addEventListener('DOMContentLoaded', () => {
   btnRate.addEventListener('click', async () => {
     if (!writeChar) return;
     try {
+      const nextRate = currentSamplingRate === 50 ? 100 : 50;
+      const rateCode = nextRate === 50 ? 0x08 : 0x09;
+
       await writeChar.writeValue(new Uint8Array([0xFF, 0xAA, 0x69, 0x88, 0xB5]));
       await new Promise(r => setTimeout(r, 100));
-      await writeChar.writeValue(new Uint8Array([0xFF, 0xAA, 0x03, 0x08, 0x00]));
+      await writeChar.writeValue(new Uint8Array([0xFF, 0xAA, 0x03, rateCode, 0x00]));
       await new Promise(r => setTimeout(r, 100));
       await writeChar.writeValue(new Uint8Array([0xFF, 0xAA, 0x00, 0x00, 0x00]));
-      alert('50Hz 설정 명령 전송 완료. 센서 LED 확인.');
+
+      currentSamplingRate = nextRate;
+      btnRate.textContent = `Set ${currentSamplingRate === 50 ? '100' : '50'}Hz`;
+      alert(`${nextRate}Hz 설정 명령 전송 완료. 센서 LED 확인.`);
     } catch(e) { console.error(e); }
   });
 
