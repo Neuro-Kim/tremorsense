@@ -55,7 +55,12 @@
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11M12 2v20M7 7l5-5 5 5M7 17l5 5 5-5"/></svg>
                 Connect Sensor
               </button>
-              <button id="btn-rate" class="btn btn-secondary" style="display:none;">Set 100Hz</button>
+              <div style="display:flex; gap:8px; align-items:center;">
+                <button id="btn-rate" class="btn btn-secondary" style="display:none;">Set 100Hz</button>
+                <div id="current-rate-display" style="display:none; padding:8px 12px; background:rgba(99,102,241,0.1); border-radius:6px; font-size:14px; font-weight:500; color:#6366f1;">
+                  Current: <span id="current-rate-value">50</span>Hz
+                </div>
+              </div>
             </div>
           </div>
           <div class="connect-right">

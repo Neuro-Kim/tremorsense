@@ -48,6 +48,8 @@ let liveData = { time: [], ax: [], ay: [], az: [], wx: [], wy: [], wz: [] };
 const $ = id => document.getElementById(id);
 const btnConnect = $('btn-connect');
 const btnRate = $('btn-rate');
+const currentRateDisplay = $('current-rate-display');
+const currentRateValue = $('current-rate-value');
 const statusText = $('ble-status');
 const statusDot = $('status-dot');
 const progressBar = $('record-progress');
@@ -171,6 +173,7 @@ async function connectBLE() {
       if (c.properties.write || c.properties.writeWithoutResponse) {
         writeChar = c;
         btnRate.style.display = 'inline-flex';
+        currentRateDisplay.style.display = 'block';
       }
     }
     if (subscribed === 0) throw new Error('No notify characteristics found');
@@ -782,6 +785,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
       currentSamplingRate = nextRate;
       btnRate.textContent = `Set ${currentSamplingRate === 50 ? '100' : '50'}Hz`;
+      currentRateValue.textContent = currentSamplingRate;
       alert(`${nextRate}Hz 설정 명령 전송 완료. 센서 LED 확인.`);
     } catch(e) { console.error(e); }
   });
